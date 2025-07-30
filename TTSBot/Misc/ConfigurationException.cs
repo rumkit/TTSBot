@@ -4,7 +4,7 @@ public class InvalidConfigurationException : ApplicationException
 {
     public string ConfigurationKey { get; set; }
     
-    public InvalidConfigurationException(string configurationKey)
+    public InvalidConfigurationException(string configurationKey) : base(message: $"Configuration key '{configurationKey}' is not set")
     {
         ConfigurationKey = configurationKey;
     }
