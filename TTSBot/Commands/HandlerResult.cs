@@ -10,5 +10,5 @@ public record HandlerResult<T>(bool IsSuccess, T Result, string ErrorMessage = "
     : HandlerResult(IsSuccess, ErrorMessage)
 {
     public static HandlerResult<T> Success(T result) => new(IsSuccess: true, result);
-    public new static HandlerResult<T> Error(string errorMessage) => new(IsSuccess: false, Result: default,  errorMessage);
+    public new static HandlerResult<T> Error(string errorMessage) => new(IsSuccess: false, Result: default!,  errorMessage);
 }
