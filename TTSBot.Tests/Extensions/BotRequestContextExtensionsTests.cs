@@ -5,9 +5,6 @@ using TTSBot.Extensions;
 using TUnit.Assertions.AssertConditions.Throws;
 using BindingFlags = System.Reflection.BindingFlags;
 
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-
 namespace TTSBot.Tests.Extensions;
 
 public class BotRequestContextExtensionsTests
@@ -35,10 +32,10 @@ public class BotRequestContextExtensionsTests
         await Assert.That(() => context.GetMessageAndChatId()).Throws<InvalidOperationException>();
     }
 
-    private BotRequestContext CreateContext(IServiceProvider? serviceProvider = null, Update? update = null, ITelegramBotClient? client = null)
+    private BotRequestContext CreateContext(IServiceProvider serviceProvider = null, Update update = null, ITelegramBotClient client = null)
     {
         update ??= new Update();
-        var constructorArgs = new object?[] { serviceProvider, update, client };
+        var constructorArgs = new object[] { serviceProvider, update, client };
         var type = typeof(BotRequestContext);
         var constructor = type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).First();
         return (BotRequestContext)constructor.Invoke(constructorArgs);

@@ -5,8 +5,6 @@ using TTSBot.Commands;
 using TTSBot.Services;
 using TTSBot.Tests.TestUtils;
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-
 namespace TTSBot.Tests.Commands;
 
 public class CommandHandlerTests

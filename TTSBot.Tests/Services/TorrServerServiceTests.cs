@@ -2,9 +2,6 @@
 using TTSBot.Services;
 using TTSBot.Tests.TestUtils;
 
-#pragma warning disable CS8604 // Possible null reference argument.
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-
 namespace TTSBot.Tests.Services;
 
 public class TorrServerServiceTests

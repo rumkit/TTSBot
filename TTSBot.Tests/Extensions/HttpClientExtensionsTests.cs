@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using TTSBot.Extensions;
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 namespace TTSBot.Tests.Extensions;
 

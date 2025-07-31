@@ -5,7 +5,7 @@ namespace TTSBot.Tests.TestUtils;
 internal delegate HttpResponseMessage MockRequestHandler(HttpRequestMessage request);
 internal class MockHttpClient : HttpClient
 {
-    public static MockHttpClient Create(MockRequestHandler? requestHandler = null)
+    public static MockHttpClient Create(MockRequestHandler requestHandler = null)
     {
         var handler = new TestHttpClientHandler();
         var client = new MockHttpClient(handler);
@@ -18,10 +18,10 @@ internal class MockHttpClient : HttpClient
         BaseAddress = new Uri("http://localhost");
     }
     
-    public HttpRequestMessage? LastRequest { get; private set; }
-    public string? LastContent { get; private set; }
+    public HttpRequestMessage LastRequest { get; private set; }
+    public string LastContent { get; private set; }
 
-    private static HttpResponseMessage DefaultRequestHandler(MockHttpClient client, HttpRequestMessage request, MockRequestHandler? customHandler)
+    private static HttpResponseMessage DefaultRequestHandler(MockHttpClient client, HttpRequestMessage request, MockRequestHandler customHandler)
     {
         client.LastRequest = request;
         // content is stored separately as the request stream might be disposed sooner than the httpClient
