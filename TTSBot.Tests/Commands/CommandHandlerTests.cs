@@ -9,7 +9,7 @@ namespace TTSBot.Tests.Commands;
 
 public class CommandHandlerTests
 {
-    private readonly CommandHandler _commandHandler = new(httpClient: null, new MockLogger<CommandHandler>(), tsService: null);
+    private readonly CommandHandler _commandHandler = new(httpClient: null, new MockLogger<CommandHandler>(), tsService: null, new MockConfiguration());
 
     [Test]
     [Arguments("magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "filename")]
@@ -21,9 +21,9 @@ public class CommandHandlerTests
     {
         using var httpClient = MockHttpClient.Create();
         using var tsClient = MockHttpClient.Create();
-        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient), new MockConfiguration());
         
-        var result = await handler.HandleMessageAsync(message);
+        var result = await handler.HandleMessageAsync(message, long.MaxValue);
         var requestModel = JsonSerializer.Deserialize<AddNewTorrentRequest>(tsClient.LastContent, JsonSerializerOptions.Web);
         
         await Assert.That(result.IsSuccess).IsTrue();
@@ -40,9 +40,9 @@ public class CommandHandlerTests
         using var responseContent = new StringContent(fileContent);
         using var httpClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.OK){Content = responseContent});
         using var tsClient = MockHttpClient.Create();
-        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient), new MockConfiguration());
         
-        var result = await handler.HandleMessageAsync("http://example.com");
+        var result = await handler.HandleMessageAsync("http://example.com", long.MaxValue);
         var requestModel = JsonSerializer.Deserialize<AddNewTorrentRequest>(tsClient.LastContent, JsonSerializerOptions.Web);
         
         await Assert.That(result.IsSuccess).IsTrue();
@@ -57,15 +57,44 @@ public class CommandHandlerTests
         using var reader = new StreamReader(deflateStream);
         return reader.ReadToEnd();
     }
+    
+    [Test]
+    public async Task HandleMessage_WhenAllowedChatIdSetAndMatched_ShouldReturnSuccess()
+    {
+        using var httpClient = MockHttpClient.Create();
+        using var tsClient = MockHttpClient.Create();
+        var configuration = new MockConfiguration();
+        configuration["Telegram:AllowedChatId"] = long.MaxValue.ToString();
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient), configuration);
+        
+        var result = await handler.HandleMessageAsync("magnet:?xt=urn:btih:f4", long.MaxValue);
+        var requestModel = JsonSerializer.Deserialize<AddNewTorrentRequest>(tsClient.LastContent, JsonSerializerOptions.Web);
+        
+        await Assert.That(result.IsSuccess).IsTrue();
+        await Assert.That(requestModel.Link).IsEqualTo("magnet:?xt=urn:btih:f4");
+    }
+    
+    [Test]
+    public async Task HandleMessage_WhenAllowedChatIdSetAndNotMatched_ShouldReturnError()
+    {
+        var configuration = new MockConfiguration();
+        configuration["Telegram:AllowedChatId"] = "123456789";
+        var handler = new CommandHandler(null, new MockLogger<CommandHandler>(), null, configuration);
+        
+        var result = await handler.HandleMessageAsync("magnet:?xt=urn:btih:f4", long.MaxValue);
+        
+        await Assert.That(result.IsSuccess).IsFalse();
+        await Assert.That(result.ErrorMessage).StartsWith("🚫 Cpt. Webhook can't chart a course for unknown passengers.");
+    }
 
     [Test]
     public async Task HandleMessage_WhenServerIsInaccessible_ShouldReturnError()
     {
         using var httpClient = MockHttpClient.Create();
         using var tsClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.RequestTimeout));
-        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient), new MockConfiguration());
         
-        var result = await handler.HandleMessageAsync("magnet:?xt=urn:btih:f4");
+        var result = await handler.HandleMessageAsync("magnet:?xt=urn:btih:f4", long.MaxValue);
         
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).StartsWith("🚫 Blasted barnacles!");
@@ -75,9 +104,9 @@ public class CommandHandlerTests
     public async Task HandleMessage_WhenPageIsInaccessible_ShouldReturnError()
     {
         using var httpClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
-        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(httpClient));
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(httpClient), new MockConfiguration());
         
-        var result = await handler.HandleMessageAsync("http://localhost/nosuchpage");
+        var result = await handler.HandleMessageAsync("http://localhost/nosuchpage", long.MaxValue);
 
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).IsNotEmpty();
@@ -92,7 +121,7 @@ public class CommandHandlerTests
     [Arguments("ftp://example.com")]
     public async Task HandleMessage_WithInvalidFormat_ShouldReturnError(string inputMessage)
     {
-        var result = await _commandHandler.HandleMessageAsync(inputMessage);
+        var result = await _commandHandler.HandleMessageAsync(inputMessage, long.MaxValue);
 
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).IsNotEmpty();

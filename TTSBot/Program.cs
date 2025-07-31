@@ -4,11 +4,9 @@ using Microsoft.Extensions.Hosting;
 using MinimalTelegramBot;
 using MinimalTelegramBot.Builder;
 using MinimalTelegramBot.Handling;
-using MinimalTelegramBot.Handling.Filters;
 using MinimalTelegramBot.Results;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using TTSBot.Commands;
 using TTSBot.Extensions;
 using TTSBot.Misc;
@@ -36,20 +34,20 @@ bot.HandleCommand("/start", (CommandHandler handler) => handler.HandleStart().Re
 
 bot.HandleCommand("/help", (CommandHandler handler) => handler.HandleHelp().Result);
 
-bot.Handle(async (string messageText, CommandHandler handler, BotRequestContext context) =>
+bot.HandleCommand("/add", async (string messageText, CommandHandler handler, BotRequestContext context, IConfiguration configuration) =>
 {
-    var result = await handler.HandleMessageAsync(messageText);
+    var (chatId, messageId) = context.GetMessageAndChatId();
+    var result = await handler.HandleMessageAsync(messageText, chatId);
     
     if (result.IsSuccess)
     {
-        var (chatId, messageId) = context.GetMessageAndChatId();
         await context.Client.SetMessageReaction(chatId, messageId,
             [new ReactionTypeEmoji { Emoji = "👍" }]);
         return Results.Empty;
     }
     
     return Results.MessageReply(result.ErrorMessage);
-}).FilterUpdateType(UpdateType.Message);
+});
 
 
 bot.Run();

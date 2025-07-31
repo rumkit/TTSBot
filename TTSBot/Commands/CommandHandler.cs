@@ -1,14 +1,23 @@
 ﻿using System.Text.RegularExpressions;
 using System.Web;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TTSBot.Services;
 
 namespace TTSBot.Commands;
 
-public partial class CommandHandler(HttpClient httpClient, ILogger<CommandHandler> logger, TorrServerService tsService)
+public partial class CommandHandler(
+    HttpClient httpClient, 
+    ILogger<CommandHandler> logger, 
+    TorrServerService tsService, 
+    IConfiguration configuration)
 {
-    public async Task<HandlerResult> HandleMessageAsync(string messageText)
+    public async Task<HandlerResult> HandleMessageAsync(string messageText, long chatId)
     {
+        var allowedChatId = configuration.GetValue<long?>("Telegram:AllowedChatId");
+        if(allowedChatId.HasValue && chatId != allowedChatId.Value)
+            return HandlerResult.Error("🚫 Cpt. Webhook can't chart a course for unknown passengers. Please identify yourself or walk the plank.");
+    
         if (TryFindUri(messageText, out var uri))
         {
             var magnetLink = await ExtractMagnetLink(uri);
