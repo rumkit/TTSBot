@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Data\sample.html">
+    <None Update="Data\sample.html.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.IO.Compression;
+using System.Net;
 using System.Text.Json;
 using TTSBot.Commands;
 using TTSBot.Services;
@@ -33,11 +34,12 @@ public class CommandHandlerTests
     }
 
     [Test]
-    public async Task HandleMessage_WithValidLink_ShouldParseCorrectlyAndReturnSuccess()
+    [MethodDataSource(nameof(GetSampleHtml))]
+    public async Task HandleMessage_WithValidLink_ShouldParseCorrectlyAndReturnSuccess(string fileContent)
     {
         const string magnet =
             @"magnet:?xt=urn:btih:f42f4f3181996ff4954dd5d7f166bc146810f8e3&amp;dn=archlinux-2025.07.01-x86_64.iso";
-        using StringContent responseContent = new(await File.ReadAllTextAsync(Path.Combine("Data","sample.html")));
+        using var responseContent = new StringContent(fileContent);
         using var httpClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.OK){Content = responseContent});
         using var tsClient = MockHttpClient.Create();
         var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
@@ -48,6 +50,14 @@ public class CommandHandlerTests
         await Assert.That(result.IsSuccess).IsTrue();
         await Assert.That(requestModel.Link).IsEqualTo(magnet);
         await Assert.That(requestModel.Title).IsEqualTo("archlinux-2025.07.01-x86_64.iso");
+    }
+    
+    public string GetSampleHtml()
+    {
+        using var fileStream = File.OpenRead(Path.Combine("Data", "sample.html.zip"));
+        using var deflateStream = new DeflateStream(fileStream, CompressionMode.Decompress);
+        using var reader = new StreamReader(deflateStream);
+        return reader.ReadToEnd();
     }
 
     [Test]
