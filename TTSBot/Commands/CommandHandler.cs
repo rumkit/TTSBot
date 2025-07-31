@@ -14,12 +14,14 @@ public partial class CommandHandler(
 {
     public async Task<HandlerResult> HandleMessageAsync(string messageText, long chatId)
     {
+        logger.LogTrace("Got command with from chat: {chatId} with text: {message}", chatId, messageText);
         var allowedChatId = configuration.GetValue<long?>("Telegram:AllowedChatId");
         if(allowedChatId.HasValue && chatId != allowedChatId.Value)
             return HandlerResult.Error("🚫 Cpt. Webhook can't chart a course for unknown passengers. Please identify yourself or walk the plank.");
     
         if (TryFindUri(messageText, out var uri))
         {
+            logger.LogTrace("First URI found: {uri}", uri);
             var magnetLink = await ExtractMagnetLink(uri);
             if (magnetLink is not null)
             {
