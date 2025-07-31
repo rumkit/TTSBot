@@ -12,6 +12,7 @@ public partial class CommandHandler(
     TorrServerService tsService, 
     IConfiguration configuration)
 {
+    private static readonly string[] KnownUriSchemes = { "magnet", Uri.UriSchemeHttp, Uri.UriSchemeHttps };
     public async Task<HandlerResult> HandleMessageAsync(string messageText, long chatId)
     {
         logger.LogTrace("Got command with from chat: {chatId} with text: {message}", chatId, messageText);
@@ -63,7 +64,7 @@ public partial class CommandHandler(
     {
         foreach (var part in messageText.Split([' ', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries))
         {
-            if (Uri.TryCreate(part, UriKind.Absolute, out var result))
+            if (Uri.TryCreate(part, UriKind.Absolute, out var result) && KnownUriSchemes.Contains(result.Scheme))
             {
                 uri = result;
                 return true;

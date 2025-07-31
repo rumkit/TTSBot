@@ -14,8 +14,8 @@ public class CommandHandlerTests
     [Test]
     [Arguments("magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "filename")]
     [Arguments("magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "filename")]
-    [Arguments("@hello_bot_name magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "filename")]
-    [Arguments("@hello_bot_name magnet:?xt=urn:btih:ACE0FBA5E&dn=F1l3%20name , download this", "magnet:?xt=urn:btih:ACE0FBA5E&dn=F1l3%20name", "F1l3 name")]
+    [Arguments("/add@bot_name magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "filename")]
+    [Arguments("@bot_name magnet:?xt=urn:btih:ACE0FBA5E&dn=F1l3%20name , download this", "magnet:?xt=urn:btih:ACE0FBA5E&dn=F1l3%20name", "F1l3 name")]
     [Arguments("link here\r\n\n\nmagnet:?xt=urn:btih:\n\r\nmagnet:?xt=urn:btih:00", "magnet:?xt=urn:btih:", "")]
     public async Task HandleMessage_WithValidUriPresent_ShouldReturnSuccess(string message, string magnet, string filename)
     {
