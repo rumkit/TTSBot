@@ -24,5 +24,6 @@ public class TorrServerServiceTests
         await Assert.That(requestBody.Action).IsEqualTo("add");
         await Assert.That(requestBody.Title).IsEqualTo("displayName");
         await Assert.That(requestBody.Link).IsEqualTo("magnetLink");
+        await Assert.That(requestBody.SaveToDb).IsTrue();
     }
 }

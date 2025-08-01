@@ -32,7 +32,7 @@ public class BotRequestContextExtensionsTests
         await Assert.That(() => context.GetMessageAndChatId()).Throws<InvalidOperationException>();
     }
 
-    private BotRequestContext CreateContext(IServiceProvider serviceProvider = null, Update update = null, ITelegramBotClient client = null)
+    internal static BotRequestContext CreateContext(IServiceProvider serviceProvider = null, Update update = null, ITelegramBotClient client = null)
     {
         update ??= new Update();
         var constructorArgs = new object[] { serviceProvider, update, client };
