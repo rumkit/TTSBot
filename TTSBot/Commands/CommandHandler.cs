@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using TTSBot.Misc;
 using TTSBot.Services;
 
 namespace TTSBot.Commands;
@@ -10,8 +11,37 @@ public partial class CommandHandler(
     ILogger<CommandHandler> logger, 
     TorrServerService tsService)
 {
+    private const string ServerCommunicationErrorText = "🚫 Blasted barnacles! I can’t reach the TorrServer—’tis either sunk or sailin’ in the wrong waters";
     private static readonly string[] KnownUriSchemes = ["magnet", Uri.UriSchemeHttp, Uri.UriSchemeHttps];
-    public async Task<HandlerResult> HandleAdd(string messageText)
+    [GeneratedRegex(@"href=""(?<magnetLink>magnet:\?xt=urn:btih:[a-zA-Z0-9]+\S*)""")]
+    private static partial Regex MagnetRegex();
+    
+    public async Task<HandlerResult<TorrentFileInfo[]>> HandleGetPlaylistAsync(string hash)
+    {
+        logger.LogTrace("Requesting playlist for torrent: {hash}", hash);
+        var playlist = await tsService.GetPlayListAsync(hash);
+        
+        if (string.IsNullOrEmpty(playlist))
+            return HandlerResult<TorrentFileInfo[]>.Error("Empty playlist error");
+        
+        var fileInfos = M3uParser.Parse(playlist);
+        if(fileInfos == null || fileInfos.Length == 0)
+            return HandlerResult<TorrentFileInfo[]>.Error("No fileInfos error");
+        
+        return HandlerResult<TorrentFileInfo[]>.Success(fileInfos);
+    }
+
+    public async Task<HandlerResult<TorrentInfo[]>> HandleListAsync()
+    {
+        logger.LogTrace("Requesting list from the server");
+        var torrents = await tsService.GetListAsync();
+        
+        return torrents != null 
+            ? HandlerResult<TorrentInfo[]>.Success(torrents)
+            : HandlerResult<TorrentInfo[]>.Error(ServerCommunicationErrorText);
+    }
+    
+    public async Task<HandlerResult> HandleAddAsync(string messageText)
     {
         logger.LogTrace("Add command invoked with the following message: {message}", messageText);
         if (TryFindUri(messageText, out var uri))
@@ -35,7 +65,7 @@ public partial class CommandHandler(
                 }
 
                 logger.LogError("TorrServer query failed");
-                return HandlerResult.Error("🚫 Blasted barnacles! I can’t reach the TorrServer—’tis either sunk or sailin’ in the wrong waters");
+                return HandlerResult.Error(ServerCommunicationErrorText);
             }
         }
 
@@ -96,7 +126,4 @@ public partial class CommandHandler(
         logger.LogCritical("Unknown uri scheme: {uriScheme}", uri.Scheme);
         return null;
     }
-
-    [GeneratedRegex(@"href=""(?<magnetLink>magnet:\?xt=urn:btih:[a-zA-Z0-9]+\S*)""")]
-    private static partial Regex MagnetRegex();
 }

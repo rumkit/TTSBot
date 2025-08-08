@@ -23,7 +23,7 @@ public class CommandHandlerTests
         using var tsClient = MockHttpClient.Create();
         var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
         
-        var result = await handler.HandleAdd(message);
+        var result = await handler.HandleAddAsync(message);
         var requestModel = JsonSerializer.Deserialize<AddNewTorrentRequest>(tsClient.LastContent, JsonSerializerOptions.Web);
         
         await Assert.That(result.IsSuccess).IsTrue();
@@ -42,7 +42,7 @@ public class CommandHandlerTests
         using var tsClient = MockHttpClient.Create();
         var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
         
-        var result = await handler.HandleAdd("http://example.com");
+        var result = await handler.HandleAddAsync("http://example.com");
         var requestModel = JsonSerializer.Deserialize<AddNewTorrentRequest>(tsClient.LastContent, JsonSerializerOptions.Web);
         
         await Assert.That(result.IsSuccess).IsTrue();
@@ -65,7 +65,7 @@ public class CommandHandlerTests
         using var tsClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.RequestTimeout));
         var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
         
-        var result = await handler.HandleAdd("magnet:?xt=urn:btih:f4");
+        var result = await handler.HandleAddAsync("magnet:?xt=urn:btih:f4");
         
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).StartsWith("🚫 Blasted barnacles!");
@@ -77,7 +77,7 @@ public class CommandHandlerTests
         using var httpClient = MockHttpClient.Create(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
         var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(httpClient));
         
-        var result = await handler.HandleAdd("http://localhost/nosuchpage");
+        var result = await handler.HandleAddAsync("http://localhost/nosuchpage");
 
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).IsNotEmpty();
@@ -92,7 +92,7 @@ public class CommandHandlerTests
     [Arguments("ftp://example.com")]
     public async Task HandleAdd_WithInvalidFormat_ShouldReturnError(string inputMessage)
     {
-        var result = await _commandHandler.HandleAdd(inputMessage);
+        var result = await _commandHandler.HandleAddAsync(inputMessage);
 
         await Assert.That(result.IsSuccess).IsFalse();
         await Assert.That(result.ErrorMessage).IsNotEmpty();
