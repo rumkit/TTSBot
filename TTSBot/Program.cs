@@ -8,6 +8,7 @@ using MinimalTelegramBot.Pipeline;
 using MinimalTelegramBot.Results;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using TTSBot.Commands;
 using TTSBot.Extensions;
 using TTSBot.Middleware;
@@ -27,6 +28,11 @@ builder.Services.AddHttpClient<TorrServerService>((serviceProvider, client) =>
     var password = configuration.GetValue<string>("TorrServer:Password") ?? throw new InvalidConfigurationException("TorrServer:Password");
     client.BaseAddress = new Uri(baseAddress);
     client.UseBasicAuthentication(user, password);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    //todo: only for local testing
+    ServerCertificateCustomValidationCallback = (_, _, _, _) => true
 });
 builder.Services.AddScoped<CommandHandler>();
 builder.Services.AddScoped<ChatIdFilterMiddleware>();
@@ -40,9 +46,44 @@ bot.HandleCommand("/start", (CommandHandler handler) => handler.HandleStart().Re
 
 bot.HandleCommand("/help", (CommandHandler handler) => handler.HandleHelp().Result);
 
+const string playlistCallbackPrefix = "get-playlist";
+bot.HandleCommand("/list", async (CommandHandler handler) =>
+{
+    var result = await handler.HandleListAsync();
+    
+    if (result.IsSuccess)
+    {
+        var keyboard = new InlineKeyboardMarkup(result.Result.Select(
+            info => new []{ InlineKeyboardButton.WithCallbackData(info.Title, $"{playlistCallbackPrefix}:{info.Hash}")}
+            ));
+        //todo: update text
+        return Results.Message("Look what I found", keyboard);
+    }
+    
+    return Results.MessageReply(result.ErrorMessage);
+});
+
+
+bot.HandleCallbackDataPrefix(playlistCallbackPrefix, async (string callbackData, CommandHandler handler, BotRequestContext context) =>
+{
+    var result = await handler.HandleGetPlaylistAsync(callbackData.Split(":")[1]);
+    
+    if (result.IsSuccess)
+    {
+        var keyboard = new InlineKeyboardMarkup(result.Result.Select(
+            info => new []{ InlineKeyboardButton.WithUrl(info.Name, info.Uri.AbsoluteUri)}
+        ));
+        //todo: update text
+        await context.Client.AnswerCallbackQuery(context.Update.CallbackQuery.Id, "Here you go", showAlert: false);
+        return Results.Message("Those are the links. Use them wisely", keyboard);
+    }
+    
+    return Results.Message(result.ErrorMessage);
+});
+
 bot.HandleCommand("/add", async (string messageText, CommandHandler handler, BotRequestContext context, IConfiguration configuration) =>
 {
-    var result = await handler.HandleAdd(messageText);
+    var result = await handler.HandleAddAsync(messageText);
     
     if (result.IsSuccess)
     {
