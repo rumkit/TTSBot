@@ -6,5 +6,6 @@ public class TorrServerOptions
     public string? User { get; init; }
     public string? Password { get; init; }
     public string? Url { get; init; }
+    public string? RewriteUrl { get; init; }
     public bool UseSelfSignedCert { get; init; }
 }

@@ -40,6 +40,7 @@ builder.Services.AddHttpClient<TorrServerService>((serviceProvider, client) =>
     return handler;
 });
 builder.Services.AddScoped<CommandHandler>();
+builder.Services.AddScoped<RewriteHandler>();
 builder.Services.AddScoped<ChatIdFilterMiddleware>();
 
 var bot = builder.Build();
@@ -51,7 +52,6 @@ bot.HandleCommand("/start", (CommandHandler handler) => handler.HandleStart().Re
 
 bot.HandleCommand("/help", (CommandHandler handler) => handler.HandleHelp().Result);
 
-const string playlistCallbackPrefix = "get-playlist";
 bot.HandleCommand("/list", async (CommandHandler handler) =>
 {
     var result = await handler.HandleListAsync();
@@ -60,20 +60,22 @@ bot.HandleCommand("/list", async (CommandHandler handler) =>
         return Results.MessageReply(result.ErrorMessage);
     
     var keyboard = new InlineKeyboardMarkup(result.Result.Select(
-        info => new []{ InlineKeyboardButton.WithCallbackData(info.Title, $"{playlistCallbackPrefix}:{info.Hash}")}
+        info => new []{ InlineKeyboardButton.WithCallbackData(info.Title, $"get-playlist:{info.Hash}")}
     ));
     return Results.Message("A fine catch from the server seas!", keyboard);
 });
 
 
-bot.HandleCallbackDataPrefix(playlistCallbackPrefix, async (string callbackData, CommandHandler handler, BotRequestContext context) =>
+bot.HandleCallbackDataPrefix("get-playlist",
+    async (string callbackData, CommandHandler handler, BotRequestContext context, RewriteHandler rewriteHandler) =>
 {
     var result = await handler.HandleGetPlaylistAsync(callbackData.Split(":")[1]);
 
     if (!result.IsSuccess)
         return Results.Message(result.ErrorMessage);
     
-    var keyboard = new InlineKeyboardMarkup(result.Result.Select(
+    var fileInfos = rewriteHandler.HandleRewrite(result.Result);
+    var keyboard = new InlineKeyboardMarkup(fileInfos.Select(
         info => new []{ InlineKeyboardButton.WithUrl(info.Name, info.Uri.AbsoluteUri)}
     ));
         

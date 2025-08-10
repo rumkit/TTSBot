@@ -19,8 +19,7 @@ public class M3uParserTests
     public async Task Parse_WhenStringHasValidFormat_ShouldReturnListOfFiles()
     {
         var result = M3uParser.Parse(ValidContent);
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result).HasCount(3);
+        await Assert.That(result).IsNotNull().And.HasCount(3);
         await Assert.That(result[0].Name).IsEqualTo("name0");
         await Assert.That(result[1].Name).IsEqualTo(string.Empty);
         await Assert.That(result[2].Name).IsEqualTo("name2");
@@ -44,7 +43,6 @@ public class M3uParserTests
     public async Task Parse_WhenStringHasNoValidFileDescriptors_ShouldReturnEmptyArray(string data)
     {
         var result = M3uParser.Parse(data);
-        await Assert.That(result).IsNotNull();
-        await Assert.That(result).IsEmpty();       
+        await Assert.That(result).IsNotNull().And.IsEmpty();
     }
 }
