@@ -1,8 +1,10 @@
 ﻿using System.IO.Compression;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using TTSBot.Commands;
 using TTSBot.Services;
+using TTSBot.Tests.Misc;
 using TTSBot.Tests.TestUtils;
 
 namespace TTSBot.Tests.Commands;
@@ -10,7 +12,81 @@ namespace TTSBot.Tests.Commands;
 public class CommandHandlerTests
 {
     private readonly CommandHandler _commandHandler = new(httpClient: null, new MockLogger<CommandHandler>(), tsService: null);
+    
+    [Test]
+    public async Task HandleGetPlaylist_WhenErrorResponseCode_ShouldReturnError()
+    {
+        using var httpClient = MockHttpClient.Create();
+        using var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+        using var tsClient = MockHttpClient.Create(_ => response);
 
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var result = await handler.HandleGetPlaylistAsync("hash");
+
+        await Assert.That(result.IsSuccess).IsFalse();
+        await Assert.That(result.ErrorMessage).StartsWith("🚫 Blasted barnacles! ");
+    }
+    
+    [Test]
+    public async Task HandleGetPlaylist_WhenPlaylistHasInvalidFormat_ShouldReturnError()
+    {
+        using var httpClient = MockHttpClient.Create();
+        using var responseContent = new StringContent("#NOTHING_IN_HERE_JUST_US_CRABS");
+
+        using var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = responseContent };
+        using var tsClient = MockHttpClient.Create(_ => response);
+
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var result = await handler.HandleGetPlaylistAsync("hash");
+
+        await Assert.That(result.IsSuccess).IsFalse();
+        await Assert.That(result.ErrorMessage).StartsWith("Arrr, I fetched the playlist");
+    }
+
+    [Test]
+    public async Task HandleGetPlaylist_WhenPlaylistProvided_ShouldReturnSuccess()
+    {
+        using var httpClient = MockHttpClient.Create();
+        using var responseContent = new StringContent(M3uParserTests.ValidContent);
+        using var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = responseContent };
+        using var tsClient = MockHttpClient.Create(_ => response);
+
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var result = await handler.HandleGetPlaylistAsync("hash");
+
+        await Assert.That(result.IsSuccess).IsTrue();
+        await Assert.That(result.Result).HasCount(3);
+    }
+
+    [Test]
+    public async Task HandleList_WhenTheListIsNotEmpty_ShouldReturnSuccess()
+    {
+        TorrentInfo[] torrentInfos = [new() {Hash = "1", Title = "title1"}, new() {Hash = "2", Title = "title2"}];
+        using var httpClient = MockHttpClient.Create();
+        using var responseContent = JsonContent.Create(torrentInfos);
+        using var response = new HttpResponseMessage(HttpStatusCode.OK) {Content = responseContent};
+        using var tsClient = MockHttpClient.Create(_ => response); 
+        
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+        var result = await handler.HandleListAsync();
+        
+        await Assert.That(result.IsSuccess).IsTrue();
+        await Assert.That(result.Result).IsEquivalentTo(torrentInfos);
+    }
+    
+    [Test]
+    public async Task HandleList_WhenTheListIsEmpty_ShouldReturnError()
+    {
+        using var httpClient = MockHttpClient.Create();
+        using var tsClient = MockHttpClient.Create();
+        var handler = new CommandHandler(httpClient, new MockLogger<CommandHandler>(), new TorrServerService(tsClient));
+
+        var result = await handler.HandleListAsync();
+        
+        await Assert.That(result.IsSuccess).IsFalse();
+        await Assert.That(result.ErrorMessage).StartsWith("🚫 Blasted barnacles! ");
+    }
+    
     [Test]
     [Arguments("magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&amp;dn=filename", "filename")]
     [Arguments("magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "magnet:?xt=urn:btih:ACE0FBA5E&dn=filename", "filename")]

@@ -4,13 +4,13 @@ namespace TTSBot.Tests.Misc;
 
 public class M3uParserTests
 {
-    private const string ValidContent = """
+    public const string ValidContent = """
                                         #EXTM3U
                                         #EXTINF:0,name0
                                         https://example.com/file0.mp4
                                         #EXTINF:42
                                         ftp://example.com/file1.avi
-                                        #EXTINF:32768,name2
+                                        #EXTINF:-1 logo="cover.jpg",name2
                                         https://example.com/file2.mp3
                                         
                                         """;
@@ -24,6 +24,8 @@ public class M3uParserTests
         await Assert.That(result[0].Name).IsEqualTo("name0");
         await Assert.That(result[1].Name).IsEqualTo(string.Empty);
         await Assert.That(result[2].Name).IsEqualTo("name2");
+        await Assert.That(result[0].Uri).IsEqualTo(new Uri("https://example.com/file0.mp4"));
+        await Assert.That(result[1].Uri).IsEqualTo(new Uri("ftp://example.com/file1.avi"));
         await Assert.That(result[2].Uri).IsEqualTo(new Uri("https://example.com/file2.mp3"));
     }
     
