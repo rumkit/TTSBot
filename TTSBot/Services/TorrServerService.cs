@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace TTSBot.Services;
 
@@ -13,7 +14,14 @@ public class TorrServerService(HttpClient httpClient)
 
         if (response.IsSuccessStatusCode)
         {
-            result = await response.Content.ReadFromJsonAsync<TorrentInfo[]>();
+            try
+            {
+                result = await response.Content.ReadFromJsonAsync<TorrentInfo[]>();
+            }
+            catch (JsonException)
+            {
+                // no valid JSON in the response, assume an empty list
+            }
         }
 
         return result;
@@ -34,8 +42,15 @@ public class TorrServerService(HttpClient httpClient)
 
     public async Task<string?> GetPlayListAsync(string hash)
     {
-        await using var responseStream = await httpClient.GetStreamAsync($"playlist?hash={hash}");
-        using var reader = new StreamReader(responseStream);
-        return await reader.ReadToEndAsync();
+        try
+        {
+            await using var responseStream = await httpClient.GetStreamAsync($"playlist?hash={hash}");
+            using var reader = new StreamReader(responseStream);
+            return await reader.ReadToEndAsync();
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
     }
 }

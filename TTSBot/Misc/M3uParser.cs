@@ -6,8 +6,7 @@ namespace TTSBot.Misc;
 public static partial class M3uParser
 {
     private const string FilePrefix = "#EXTM3U";
-    private const string HeaderLinePrefix = "#EXTINF";
-    [GeneratedRegex($"{HeaderLinePrefix}:(?<size>\\d+),?(?<name>.*)?")]
+    [GeneratedRegex("#EXTINF:(?<size>-1|\\d+)(?<attributes> [^,\\r\\n]*)?,?(?<name>.*)?")]
     private static partial Regex HeaderLineRegex();
 
     public static TorrentFileInfo[]? Parse(string fileContents)
@@ -37,6 +36,4 @@ public static partial class M3uParser
 
         return results.ToArray();
     }
-    
-    
 }

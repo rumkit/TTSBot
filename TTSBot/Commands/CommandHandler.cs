@@ -22,11 +22,12 @@ public partial class CommandHandler(
         var playlist = await tsService.GetPlayListAsync(hash);
         
         if (string.IsNullOrEmpty(playlist))
-            return HandlerResult<TorrentFileInfo[]>.Error("Empty playlist error");
+            return HandlerResult<TorrentFileInfo[]>.Error(ServerCommunicationErrorText);
         
         var fileInfos = M3uParser.Parse(playlist);
+        logger.LogInformation("Fetched playlist with {entriesAmount} entries", fileInfos?.Length ?? 0);
         if(fileInfos == null || fileInfos.Length == 0)
-            return HandlerResult<TorrentFileInfo[]>.Error("No fileInfos error");
+            return HandlerResult<TorrentFileInfo[]>.Error("Arrr, I fetched the playlist—but it’s emptier than a rum barrel at dawn! Nothin’ useful aboard, matey");
         
         return HandlerResult<TorrentFileInfo[]>.Success(fileInfos);
     }
@@ -36,6 +37,7 @@ public partial class CommandHandler(
         logger.LogTrace("Requesting list from the server");
         var torrents = await tsService.GetListAsync();
         
+        logger.LogInformation("Fetched torrents info with {entriesAmount} entries", torrents?.Length ?? 0);
         return torrents != null 
             ? HandlerResult<TorrentInfo[]>.Success(torrents)
             : HandlerResult<TorrentInfo[]>.Error(ServerCommunicationErrorText);
