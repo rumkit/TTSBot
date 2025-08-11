@@ -1,4 +1,4 @@
-﻿namespace TTSBot.Services;
+﻿namespace TTSBot.Commands;
 
 public class TorrentFileInfo
 {

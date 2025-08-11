@@ -1,6 +1,6 @@
 ﻿using TTSBot.Misc;
 
-namespace TTSBot.Tests.Misc;
+namespace TTSBot.Tests.Commands;
 
 public class M3uParserTests
 {

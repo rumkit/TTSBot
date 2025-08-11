@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using TTSBot.Commands;
 using TTSBot.Services;
 
 namespace TTSBot.Misc;

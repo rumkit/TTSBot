@@ -1,49 +1,16 @@
 ﻿using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Extensions.Logging;
-using TTSBot.Misc;
 using TTSBot.Services;
 
 namespace TTSBot.Commands;
 
-public partial class CommandHandler(
-    HttpClient httpClient, 
-    ILogger<CommandHandler> logger, 
-    TorrServerService tsService)
+public partial class AddCommandHandler(HttpClient httpClient, ILogger<AddCommandHandler> logger, TorrServerService tsService)
+    : CommandHandlerBase
 {
-    private const string ServerCommunicationErrorText = "🚫 Blasted barnacles! I can’t reach the TorrServer—’tis either sunk or sailin’ in the wrong waters";
     private static readonly string[] KnownUriSchemes = ["magnet", Uri.UriSchemeHttp, Uri.UriSchemeHttps];
-    [GeneratedRegex(@"href=""(?<magnetLink>magnet:\?xt=urn:btih:[a-zA-Z0-9]+\S*)""")]
-    private static partial Regex MagnetRegex();
-    
-    public async Task<HandlerResult<TorrentFileInfo[]>> HandleGetPlaylistAsync(string hash)
-    {
-        logger.LogTrace("Requesting playlist for torrent: {hash}", hash);
-        var playlist = await tsService.GetPlayListAsync(hash);
-        
-        if (string.IsNullOrEmpty(playlist))
-            return HandlerResult<TorrentFileInfo[]>.Error(ServerCommunicationErrorText);
-        
-        var fileInfos = M3uParser.Parse(playlist);
-        logger.LogInformation("Fetched playlist with {entriesAmount} entries", fileInfos?.Length ?? 0);
-        if(fileInfos == null || fileInfos.Length == 0)
-            return HandlerResult<TorrentFileInfo[]>.Error("Arrr, I fetched the playlist—but it’s emptier than a rum barrel at dawn! Nothin’ useful aboard, matey");
-        
-        return HandlerResult<TorrentFileInfo[]>.Success(fileInfos);
-    }
 
-    public async Task<HandlerResult<TorrentInfo[]>> HandleListAsync()
-    {
-        logger.LogTrace("Requesting list from the server");
-        var torrents = await tsService.GetListAsync();
-        
-        logger.LogInformation("Fetched torrents info with {entriesAmount} entries", torrents?.Length ?? 0);
-        return torrents != null 
-            ? HandlerResult<TorrentInfo[]>.Success(torrents)
-            : HandlerResult<TorrentInfo[]>.Error(ServerCommunicationErrorText);
-    }
-    
-    public async Task<HandlerResult> HandleAddAsync(string messageText)
+    protected override async Task<HandlerResult<string>> HandleInternalAsync(string messageText)
     {
         logger.LogTrace("Add command invoked with the following message: {message}", messageText);
         if (TryFindUri(messageText, out var uri))
@@ -72,19 +39,12 @@ public partial class CommandHandler(
         }
 
         logger.LogError("Cannot parse the URI from the user's message");
-        return HandlerResult.Error("🚫 Blimey! That link be missin' or twisted like a kraken's tentacle. Toss me a proper magnet or webpage, lest ye be marooned!");
+        return HandlerResult.Error(
+            "🚫 Blimey! That link be missin' or twisted like a kraken's tentacle. Toss me a proper magnet or webpage, lest ye be marooned!");
     }
 
-    public HandlerResult<string> HandleHelp()
-        => HandlerResult<string>.Success("Ahoy! Drop a magnet link or a link to a web page with one inside, and I’ll toss it straight to the TorrServer like cannon-fire");
-
-
-    public HandlerResult<string> HandleStart()
-        => HandlerResult<string>.Success(
-            "☠️ Ahoy there, ye salty sea dog!" + Environment.NewLine +
-            "I be Captain WebHook, scourge of the digital seas and master of magnet treasure. " +
-            "Send me the magnet link or a webpage containin’ the link—I’ll haul it into the TorrServer faster than you can say “Yo ho ho!”"
-        );
+    [GeneratedRegex(@"href=""(?<magnetLink>magnet:\?xt=urn:btih:[a-zA-Z0-9]+\S*)""")]
+    private static partial Regex MagnetRegex();
 
     private bool TryFindUri(string messageText, out Uri uri)
     {
@@ -124,7 +84,7 @@ public partial class CommandHandler(
             logger.LogError("Cannot find the magnet link in the webpage.");
             return null;
         }
-
+        
         logger.LogCritical("Unknown uri scheme: {uriScheme}", uri.Scheme);
         return null;
     }
