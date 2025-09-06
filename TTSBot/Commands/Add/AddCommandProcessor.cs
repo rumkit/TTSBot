@@ -6,19 +6,18 @@ using TTSBot.Extensions;
 
 namespace TTSBot.Commands;
 
-public class AddCommandProcessor : ICommandProcessor
+public class AddCommandProcessor(AddCommandHandler handler) : ICommandProcessor
 {
-    public static Delegate ProcessCommand { get; } =
-        async (string messageText, AddCommandHandler handler, BotRequestContext context) =>
-        {
-            var result = await handler.TryHandleAsync(messageText);
+    public async Task<IResult> ProcessAsync(BotRequestContext context)
+    {
+        var result = await handler.TryHandleAsync(context.MessageText ?? string.Empty);
 
-            if (!result.IsSuccess)
-                return Results.MessageReply(result.ErrorMessage);
+        if (!result.IsSuccess)
+            return Results.MessageReply(result.ErrorMessage);
 
-            var (chatId, messageId) = context.GetMessageAndChatId();
-            await context.Client.SetMessageReaction(chatId, messageId,
-                [new ReactionTypeEmoji { Emoji = "👍" }]);
-            return Results.Empty;
-        };
+        var (chatId, messageId) = context.GetMessageAndChatId();
+        await context.Client.SetMessageReaction(chatId, messageId,
+            [new ReactionTypeEmoji { Emoji = "👍" }]);
+        return Results.Empty;
+    }
 }

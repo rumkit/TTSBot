@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using TTSBot.Misc;
-using TTSBot.Services;
 
 namespace TTSBot.Commands;
 

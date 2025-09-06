@@ -5,12 +5,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TTSBot.Commands;
 
-public class GetPlaylistCommandProcessor : ICommandProcessor
+public class GetPlaylistCommandProcessor(GetPlaylistCommandHandler handler) : ICommandProcessor
 {
-    public static Delegate ProcessCommand { get; } = 
-        async (string callbackData, IGetPlaylistCommandHandler handler, BotRequestContext context) =>
+    public async Task<IResult> ProcessAsync(BotRequestContext context)
     {
-        var result = await handler.TryHandleAsync(callbackData.Split(":")[1]);
+        var result = await handler.TryHandleAsync(context.CallbackData?.Split(":")[1] ?? string.Empty);
 
         if (!result.IsSuccess)
             return Results.Message(result.ErrorMessage);
@@ -23,5 +22,5 @@ public class GetPlaylistCommandProcessor : ICommandProcessor
             await context.Client.AnswerCallbackQuery(context.Update.CallbackQuery.Id);
 
         return Results.Message("Here be the links. Use ’em wisely, matey.", keyboard);
-    };
+    }
 }

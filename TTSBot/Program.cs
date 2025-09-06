@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MinimalTelegramBot.Builder;
-using MinimalTelegramBot.Handling;
 using MinimalTelegramBot.Pipeline;
 using TTSBot.Commands;
 using TTSBot.Extensions;
@@ -38,17 +37,23 @@ builder.Services.Scan(scan => scan
     .AddClasses(classes => classes.AssignableTo<ICommandHandler>())
     .AsSelfWithInterfaces()
     .WithScopedLifetime());
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<ICommandProcessor>()
+    .AddClasses(classes => classes.AssignableTo<ICommandProcessor>())
+    .AsSelf()
+    .WithScopedLifetime());
 builder.Services.Decorate<IGetPlaylistCommandHandler, GetPlaylistRewriteDecorator>();
 builder.Services.AddScoped<ChatIdFilterMiddleware>();
 
+// Setup middleware to filter out unknown chat ids
 var bot = builder.Build();
 bot.UsePipe<ChatIdFilterMiddleware>();
 
 // Setup bot commands
-bot.HandleCommandWith<StartCommandHandler>("/start");
-bot.HandleCommandWith<HelpCommandHandler>("/help");
-bot.AttachCommandProcessor<ListCommandProcessor>("/list");
-bot.AttachCommandProcessor<AddCommandProcessor>("/add");
-bot.HandleCallbackDataPrefix("get-playlist", GetPlaylistCommandProcessor.ProcessCommand);
+bot.HandleCommandWithDefaultProcessor<StartCommandHandler>("/start");
+bot.HandleCommandWithDefaultProcessor<HelpCommandHandler>("/help");
+bot.HandleCommandWith<ListCommandProcessor>("/list");
+bot.HandleCommandWith<AddCommandProcessor>("/add");
+bot.HandleCallbackDataPrefixWith<GetPlaylistCommandProcessor>("get-playlist");
 
 bot.Run();

@@ -1,11 +1,12 @@
-﻿using MinimalTelegramBot.Results;
+﻿using MinimalTelegramBot;
+using MinimalTelegramBot.Results;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TTSBot.Commands;
 
-public class ListCommandProcessor : ICommandProcessor
+public class ListCommandProcessor(ListCommandHandler handler) : ICommandProcessor
 {
-    public static Delegate ProcessCommand { get; } = async (ListCommandHandler handler) =>
+    public async Task<IResult> ProcessAsync(BotRequestContext context)
     {
         var result = await handler.TryHandleAsync("");
 
@@ -16,5 +17,5 @@ public class ListCommandProcessor : ICommandProcessor
             new[] { InlineKeyboardButton.WithCallbackData(info.Title, $"get-playlist:{info.Hash}") }
         ));
         return Results.Message("A fine catch from the server seas!", keyboard);
-    };
+    }
 }

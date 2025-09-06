@@ -1,6 +1,9 @@
-﻿namespace TTSBot.Commands;
+﻿using MinimalTelegramBot;
+using MinimalTelegramBot.Results;
+
+namespace TTSBot.Commands;
 
 public interface ICommandProcessor
 {
-    static abstract Delegate ProcessCommand { get; }   
+    Task<IResult> ProcessAsync(BotRequestContext context);
 }

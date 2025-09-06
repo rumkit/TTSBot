@@ -2,7 +2,7 @@
 
 public class TorrentFileInfo
 {
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public int Length { get; set; }
-    public Uri Uri { get; set; }    
+    public required Uri Uri { get; set; }    
 }
