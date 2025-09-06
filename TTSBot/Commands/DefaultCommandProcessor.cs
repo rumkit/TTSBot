@@ -3,6 +3,7 @@ using MinimalTelegramBot.Results;
 
 namespace TTSBot.Commands;
 
+[SkipDependencyScan]
 public class DefaultCommandProcessor(CommandHandlerBase handler) : ICommandProcessor
 {
     public async Task<IResult> ProcessAsync(BotRequestContext context)

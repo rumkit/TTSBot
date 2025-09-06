@@ -39,7 +39,9 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime());
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<ICommandProcessor>()
-    .AddClasses(classes => classes.AssignableTo<ICommandProcessor>())
+    .AddClasses(classes => classes
+        .AssignableTo<ICommandProcessor>()
+        .WithoutAttribute<SkipDependencyScanAttribute>())
     .AsSelf()
     .WithScopedLifetime());
 builder.Services.Decorate<IGetPlaylistCommandHandler, GetPlaylistRewriteDecorator>();
