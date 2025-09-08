@@ -4,8 +4,9 @@
 ## Description
 
 A primitive Telegram bot for interacting with the TorrServer (https://github.com/YouROK/TorrServer). 
-The bot has a single `/add` command which receives a magnet link or an http link to a page with the magnet link inside. 
-The magnet link is added to the TorrServer using its API. 
+The bot supports the following commands:
+- `/add` receives a magnet link or an http link to a page with the magnet link inside. The magnet link is added to the TorrServer using its API.
+- `/list` list all torrents saved on the server. When the user clicks on any of the results, the bot sends a playable link per each file in the torrent.
 
 The bot is build on top of the Minimal Telegram Bot: https://github.com/k-paul-acct/minimal-telegram-bot
 
