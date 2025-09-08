@@ -1,15 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using MinimalTelegramBot;
 using MinimalTelegramBot.Builder;
-using MinimalTelegramBot.Handling;
 using MinimalTelegramBot.Pipeline;
-using MinimalTelegramBot.Results;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 using TTSBot.Commands;
 using TTSBot.Extensions;
 using TTSBot.Middleware;
@@ -39,63 +32,30 @@ builder.Services.AddHttpClient<TorrServerService>((serviceProvider, client) =>
         handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
     return handler;
 });
-builder.Services.AddScoped<CommandHandler>();
-builder.Services.AddScoped<RewriteHandler>();
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<ICommandHandler>()
+    .AddClasses(classes => classes.AssignableTo<ICommandHandler>())
+    .AsSelfWithInterfaces()
+    .WithScopedLifetime());
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<ICommandProcessor>()
+    .AddClasses(classes => classes
+        .AssignableTo<ICommandProcessor>()
+        .WithoutAttribute<SkipDependencyScanAttribute>())
+    .AsSelf()
+    .WithScopedLifetime());
+builder.Services.Decorate<IGetPlaylistCommandHandler, GetPlaylistRewriteDecorator>();
 builder.Services.AddScoped<ChatIdFilterMiddleware>();
 
+// Setup middleware to filter out unknown chat ids
 var bot = builder.Build();
-
 bot.UsePipe<ChatIdFilterMiddleware>();
 
 // Setup bot commands
-bot.HandleCommand("/start", (CommandHandler handler) => handler.HandleStart().Result);
-
-bot.HandleCommand("/help", (CommandHandler handler) => handler.HandleHelp().Result);
-
-bot.HandleCommand("/list", async (CommandHandler handler) =>
-{
-    var result = await handler.HandleListAsync();
-
-    if (!result.IsSuccess)
-        return Results.MessageReply(result.ErrorMessage);
-    
-    var keyboard = new InlineKeyboardMarkup(result.Result.Select(
-        info => new []{ InlineKeyboardButton.WithCallbackData(info.Title, $"get-playlist:{info.Hash}")}
-    ));
-    return Results.Message("A fine catch from the server seas!", keyboard);
-});
-
-
-bot.HandleCallbackDataPrefix("get-playlist",
-    async (string callbackData, CommandHandler handler, BotRequestContext context, RewriteHandler rewriteHandler) =>
-{
-    var result = await handler.HandleGetPlaylistAsync(callbackData.Split(":")[1]);
-
-    if (!result.IsSuccess)
-        return Results.Message(result.ErrorMessage);
-    
-    var fileInfos = rewriteHandler.HandleRewrite(result.Result);
-    var keyboard = new InlineKeyboardMarkup(fileInfos.Select(
-        info => new []{ InlineKeyboardButton.WithUrl(info.Name, info.Uri.AbsoluteUri)}
-    ));
-        
-    if(context.Update?.CallbackQuery is not null)
-        await context.Client.AnswerCallbackQuery(context.Update.CallbackQuery.Id);
-    return Results.Message("Here be the links. Use ’em wisely, matey.", keyboard);
-});
-
-bot.HandleCommand("/add", async (string messageText, CommandHandler handler, BotRequestContext context) =>
-{
-    var result = await handler.HandleAddAsync(messageText);
-
-    if (!result.IsSuccess)
-        return Results.MessageReply(result.ErrorMessage);
-    
-    var (chatId, messageId) = context.GetMessageAndChatId();
-    await context.Client.SetMessageReaction(chatId, messageId,
-        [new ReactionTypeEmoji { Emoji = "👍" }]);
-    return Results.Empty;
-});
-
+bot.HandleCommandWithDefaultProcessor<StartCommandHandler>("/start");
+bot.HandleCommandWithDefaultProcessor<HelpCommandHandler>("/help");
+bot.HandleCommandWith<ListCommandProcessor>("/list");
+bot.HandleCommandWith<AddCommandProcessor>("/add");
+bot.HandleCallbackDataPrefixWith<GetPlaylistCommandProcessor>("get-playlist");
 
 bot.Run();

@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <PackageReference Include="MinimalTelegramBot" Version="0.0.40" />
+      <PackageReference Include="Scrutor" Version="6.1.0" />
     </ItemGroup>
 
     <ItemGroup>
