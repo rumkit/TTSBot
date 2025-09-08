@@ -1,10 +1,7 @@
-﻿using MinimalTelegramBot;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using TTSBot.Extensions;
 using TTSBot.Tests.TestUtils;
 using TUnit.Assertions.AssertConditions.Throws;
-using BindingFlags = System.Reflection.BindingFlags;
 
 namespace TTSBot.Tests.Extensions;
 

@@ -1,6 +1,4 @@
-﻿using MinimalTelegramBot;
-using TTSBot.Commands;
-using TTSBot.Tests.Extensions;
+﻿using TTSBot.Commands;
 using TTSBot.Tests.TestUtils;
 using TTSBot.Tests.TestUtils.Assertions;
 

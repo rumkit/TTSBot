@@ -1,7 +1,6 @@
 ﻿using MinimalTelegramBot;
 using Telegram.Bot.Types;
 using TTSBot.Middleware;
-using TTSBot.Tests.Extensions;
 using TTSBot.Tests.TestUtils;
 
 namespace TTSBot.Tests.Middleware;

@@ -1,6 +1,5 @@
 ﻿using TTSBot.Commands;
 using TTSBot.Services;
-using TTSBot.Tests.Extensions;
 using TTSBot.Tests.TestUtils;
 using TTSBot.Tests.TestUtils.Assertions;
 

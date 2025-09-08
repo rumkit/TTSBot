@@ -1,7 +1,6 @@
 ﻿using MinimalTelegramBot.Results;
 using TUnit.Assertions.AssertConditions.Interfaces;
 using TUnit.Assertions.AssertionBuilders;
-using TUnit.Assertions.Assertions.Generics.Conditions;
 
 namespace TTSBot.Tests.TestUtils.Assertions;
 
