@@ -73,3 +73,14 @@ public class GetPlaylistRewriteDecoratorTests
         await Assert.That(result).IsEquivalentTo(expectedResult);
     }
 }
+
+file class GetPlaylistTestHandler(HandlerResult<TorrentFileInfo[]> expectedResult) : GetPlaylistCommandHandler(logger: null, tsService: null)
+{
+    public string Hash { get; private set; }
+
+    protected override Task<HandlerResult<TorrentFileInfo[]>> HandleInternalAsync(string hash)
+    {
+        Hash = hash;
+        return Task.FromResult(expectedResult);
+    }
+}

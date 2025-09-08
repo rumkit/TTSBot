@@ -44,7 +44,7 @@ builder.Services.Scan(scan => scan
         .WithoutAttribute<SkipDependencyScanAttribute>())
     .AsSelf()
     .WithScopedLifetime());
-builder.Services.Decorate<IGetPlaylistCommandHandler, GetPlaylistRewriteDecorator>();
+builder.Services.Decorate<GetPlaylistCommandHandler, GetPlaylistRewriteDecorator>();
 builder.Services.AddScoped<ChatIdFilterMiddleware>();
 
 // Setup middleware to filter out unknown chat ids

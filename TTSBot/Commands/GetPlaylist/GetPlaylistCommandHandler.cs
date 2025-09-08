@@ -4,13 +4,8 @@ using TTSBot.Services;
 
 namespace TTSBot.Commands;
 
-public interface IGetPlaylistCommandHandler
-{
-    Task<HandlerResult<TorrentFileInfo[]>> TryHandleAsync(string hash);   
-}
-
 public class GetPlaylistCommandHandler(ILogger<GetPlaylistCommandHandler> logger, TorrServerService tsService)
-    : CommandHandlerBase<TorrentFileInfo[]>, IGetPlaylistCommandHandler
+    : CommandHandlerBase<TorrentFileInfo[]>
 {
     protected override async Task<HandlerResult<TorrentFileInfo[]>> HandleInternalAsync(string hash)
     {

@@ -3,8 +3,8 @@ using TTSBot.Misc;
 
 namespace TTSBot.Commands;
 
-public class GetPlaylistRewriteDecorator(IOptions<TorrServerOptions> options, IGetPlaylistCommandHandler handler) 
-    : CommandHandlerBase<TorrentFileInfo[]>, IGetPlaylistCommandHandler
+public class GetPlaylistRewriteDecorator(IOptions<TorrServerOptions> options, GetPlaylistCommandHandler handler) 
+    : GetPlaylistCommandHandler(logger: null!, tsService: null!)
 {
     protected override async Task<HandlerResult<TorrentFileInfo[]>> HandleInternalAsync(string input)
     {
