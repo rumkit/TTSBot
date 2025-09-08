@@ -20,7 +20,7 @@ public class ChatIdFilterMiddlewareTests
         {
             Message = new Message { Chat = new Chat {Id = ActualChatId} }
         };
-        _context = BotRequestContextExtensionsTests.CreateContext(update: update);
+        _context = BotRequestContextFactory.Create(update: update);
         _middleware = new ChatIdFilterMiddleware(_configuration, new MockLogger<ChatIdFilterMiddleware>());
     }
     

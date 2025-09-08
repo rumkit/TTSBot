@@ -1,6 +1,7 @@
 ﻿using TTSBot.Commands;
 using TTSBot.Services;
 using TTSBot.Tests.Extensions;
+using TTSBot.Tests.TestUtils;
 using TTSBot.Tests.TestUtils.Assertions;
 
 namespace TTSBot.Tests.Commands;
@@ -11,7 +12,7 @@ public class ListCommandProcessorTests
     public async Task Process_WhenSuccess_ShouldReturnMessageResult()
     {
         var processor = new ListCommandProcessor(new SuccessHandler());
-        var result = await processor.ProcessAsync(BotRequestContextExtensionsTests.CreateContext());
+        var result = await processor.ProcessAsync(BotRequestContextFactory.Create());
 
         await Assert.That(result).IsMessage();
         await Assert.That(result).HasMessage("A fine catch from the server seas!");
@@ -21,7 +22,7 @@ public class ListCommandProcessorTests
     public async Task Process_WhenFail_ShouldReturnReplyResult()
     {
         var processor = new ListCommandProcessor(new ErrorHandler());
-        var result = await processor.ProcessAsync(BotRequestContextExtensionsTests.CreateContext());
+        var result = await processor.ProcessAsync(BotRequestContextFactory.Create());
 
         await Assert.That(result).IsReply();
         await Assert.That(result).HasMessage("ErrorMessage");
