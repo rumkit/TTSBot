@@ -26,5 +26,6 @@ services:
       TorrServer__User: #torrserver user
       TorrServer__Password: #torrserver password
       TorrServer__Url: #torrserver url e.g. http://127.0.0.1:8080
-      Telegram__AllowedChatId: #OPTIONAL if provided, bot will process any commands only from the specified chat
+      TorrServer__RewriteUrl: #OPTIONAL if provided, the bot will use this url when generating playable links. Useful when the bot runs on the same host as the TorrServer
+      Telegram__AllowedChatId: #OPTIONAL if provided, the bot will process any commands only from the specified chat
 ```
