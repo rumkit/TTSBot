@@ -1,7 +1,6 @@
 ﻿using Telegram.Bot.Types;
 using TTSBot.Extensions;
 using TTSBot.Tests.TestUtils;
-using TUnit.Assertions.AssertConditions.Throws;
 
 namespace TTSBot.Tests.Extensions;
 
