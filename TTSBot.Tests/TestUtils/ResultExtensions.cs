@@ -33,14 +33,14 @@ public static class ResultExtensions
         return text?.ToString();
     }
 
-    public static IReplyMarkup? GetKeyboard(this IResult result)
+    public static ReplyMarkup? GetKeyboard(this IResult result)
     {
         var type = result.GetType();
         if (type.Name != "MessageResult")
             throw new InvalidOperationException("The result is not a MessageResult");
 
         var keyboard = type.GetField("_replyMarkup", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(result);
-        return keyboard as IReplyMarkup;
+        return keyboard as ReplyMarkup;
     }
 }
 

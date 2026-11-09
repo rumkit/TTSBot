@@ -53,7 +53,7 @@ public class GetPlaylistRewriteDecoratorTests
 
         await Assert.That(testHandler.Hash).IsEqualTo("hash");
         await Assert.That(result.IsSuccess).IsTrue();
-        await Assert.That(result.Result).HasCount(3);
+        await Assert.That(result.Result).Count().IsEqualTo(3);
         var names = result.Result.Select(x => x.Name).ToArray();
         await Assert.That(names).IsEquivalentTo(LocalList);
         await Assert.That(result.Result.Select(r => r.Length)).All().Satisfy(x => x.IsEqualTo(42));

@@ -2,6 +2,7 @@
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Requests.Abstractions;
+using Telegram.Bot.Types;
 
 namespace TTSBot.Tests.TestUtils;
 
@@ -30,6 +31,11 @@ public class MockTelegramClient : ITelegramBotClient
     }
 
     public Task DownloadFile(string filePath, Stream destination, CancellationToken cancellationToken = new CancellationToken())
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DownloadFile(TGFile file, Stream destination, CancellationToken cancellationToken = new CancellationToken())
     {
         throw new NotImplementedException();
     }
