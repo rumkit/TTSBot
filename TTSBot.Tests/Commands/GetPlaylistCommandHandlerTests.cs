@@ -46,6 +46,6 @@ public class GetPlaylistCommandHandlerTests
         var result = await handler.TryHandleAsync("hash");
 
         await Assert.That(result.IsSuccess).IsTrue();
-        await Assert.That(result.Result).HasCount(3);
+        await Assert.That(result.Result).Count().IsEqualTo(3);
     }
 }

@@ -26,13 +26,13 @@ public class GetPlaylistCommandProcessorTests
         var keyboard = result.GetKeyboard() as InlineKeyboardMarkup;
         await Assert.That(keyboard).IsNotNull();
         // two buttons in total
-        await Assert.That(keyboard.InlineKeyboard).HasCount(2);
+        await Assert.That(keyboard.InlineKeyboard).Count().IsEqualTo(2);
         // first row has one button
-        await Assert.That(keyboard.InlineKeyboard.First()).HasCount(1);
+        await Assert.That(keyboard.InlineKeyboard.First()).Count().IsEqualTo(1);
         // button has correct url
         await Assert.That(keyboard.InlineKeyboard.First().Single().Url).IsEqualTo("http://example.com/info1");
         // second row has one button
-        await Assert.That(keyboard.InlineKeyboard.Last()).HasCount(1);
+        await Assert.That(keyboard.InlineKeyboard.Last()).Count().IsEqualTo(1);
         // button has correct url
         await Assert.That(keyboard.InlineKeyboard.Last().Single().Url).IsEqualTo("http://example.com/info2");
         
